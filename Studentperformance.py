@@ -14,6 +14,7 @@ y = data["overall_score"]
 
 
 X = data.drop("overall_score", axis=1)
+print(X.columns)
 
 
 label_encoders = {}
