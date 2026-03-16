@@ -82,4 +82,18 @@ def predict():
     })
 
 if __name__ == "__main__":
-    app.run(debug=True)
+
+    import streamlit as st
+import pickle
+import pandas as pd
+
+model = pickle.load(open("student_model.pkl","rb"))
+
+st.title("Student Score Prediction")
+
+hours = st.number_input("Study Hours")
+attendance = st.number_input("Attendance")
+
+if st.button("Predict"):
+    prediction = model.predict([[hours,attendance]])
+    st.success(prediction)
