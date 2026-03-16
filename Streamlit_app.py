@@ -9,17 +9,20 @@ def load_assets():
     encoders = pickle.load(open("encoders.pkl", "rb"))
     return model, encoders
 
-model, label_encoders = load_assets()
+try:
+    model, label_encoders = load_assets()
+except FileNotFoundError:
+    st.error("Model or encoders not found! Please run your training script first.")
+    st.stop()
 
 st.title("Student Performance Predictor 🎓")
 st.write("Enter the student's details below to predict their overall score.")
 
-# --- 2. Build the User Interface ---
-# Organizing inputs into columns for a cleaner UI layout
+# --- 2. Build the User Interface (All 13 Features) ---
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("Demographics & School")
+    st.subheader("Demographics & Background")
     age = st.number_input("Age", min_value=14, max_value=19, value=16)
     gender = st.selectbox("Gender", ["male", "female", "other"])
     school_type = st.selectbox("School Type", ["public", "private"])
@@ -30,7 +33,7 @@ with col1:
     internet_access = st.radio("Internet Access at Home", ["yes", "no"])
 
 with col2:
-    st.subheader("Study Habits & Activities")
+    st.subheader("Habits & Extracurriculars")
     study_hours = st.slider("Study Hours (Daily)", min_value=0.5, max_value=8.0, value=3.0, step=0.1)
     attendance_percentage = st.slider("Attendance (%)", min_value=50.0, max_value=100.0, value=85.0)
     travel_time = st.selectbox("Travel Time to School", ["<15 min", "15-30 min", "30-60 min", ">60 min"])
@@ -52,38 +55,35 @@ with col5:
 # --- 3. Prediction Logic ---
 if st.button("Predict Overall Score", type="primary"):
     
-    # 3.1 Create a DataFrame ensuring exact column order matching X_train
-    # Inside your app.py, under the 'if st.button("Predict"):' section:
-    
-    # EXACT match to the 13 columns from X_train
+    # EXACT match to the 13 columns used during training
+    # EXACT match to the features the model was trained on
     input_data = pd.DataFrame({
-        "age": [age],                                   # Was missing
-        "gender": [gender],                             # Was missing
+        "age": [age],
+        "sex": [gender],                               # Changed from gender
         "school_type": [school_type],
         "parent_education": [parent_education],
-        "study_hours": [study_hours],
-        "attendance_percentage": [attendance_percentage], # Fixed from "attendance"
+        "study_time": [study_hours],                   # Changed from study_hours
+        "attendance_percent": [attendance_percentage], # Changed from attendance_percentage
         "internet_access": [internet_access],
         "travel_time": [travel_time],
-        "extra_activities": [extra_activities],         # Was missing
+        "extracurricular": [extra_activities],         # Changed from extra_activities
         "study_method": [study_method],
         "math_score": [math_score],
         "science_score": [science_score],
-        "english_score": [english_score]                # Was missing
+        "english": [english_score]                     # Changed from english_score
     })
     
-    # 3.2 Apply the Label Encoders
     try:
+        # Apply the exact Label Encoders saved during training
         for column, le in label_encoders.items():
             if column in input_data.columns:
-                # Use transform to map inputs based on how it was trained
                 input_data[column] = le.transform(input_data[column])
                 
-        # 3.3 Make the Prediction
+        # Make the Prediction
         prediction = model.predict(input_data)
         
-        # Display the result
+        # Display the Result
         st.success(f"### Predicted Overall Score: {prediction[0]:.2f}")
         
     except Exception as e:
-        st.error(f"An error occurred during prediction: {e}")
+        st.error(f"Prediction Error: {e}")
