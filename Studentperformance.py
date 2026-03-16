@@ -5,6 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score
 
+
 # 1. Load the dataset
 data = pd.read_csv("Student_Performance.csv")
 
@@ -15,6 +16,7 @@ data = data.drop(["student_id", "final_grade"], axis=1)
 # 3. Separate features (X) and target (y)
 y = data["overall_score"]
 X = data.drop("overall_score", axis=1)
+pickle.dump(X.columns.tolist(), open("model/features.pkl","wb"))
 
 print("Features being trained on:", X.columns.tolist())
 
@@ -53,4 +55,3 @@ print(f"Model Performance (R2 Score): {score:.4f}")
 pickle.dump(model, open("student_model.pkl", "wb"))
 pickle.dump(label_encoders, open("encoders.pkl", "wb"))
 
-print("Model and encoders saved successfully as 'student_model.pkl' and 'encoders.pkl'!")
